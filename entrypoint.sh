@@ -24,9 +24,15 @@ function find_workflow {
   while [[ true ]]
   do
     counter=$(( $counter + 1 ))
-    workflow=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs" \
+    all_runs=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs" \
       -H "Accept: application/vnd.github.v3+json" \
-      -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
+      -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs' )
+
+    # Github's API is eventually consistent when filtering by event which can
+    # lead to bad results when using the `event` filter on the API query.
+    # Filter here, instead, to work around this.
+    dispatch_runs=$( echo $(echo $all_runs | jq 'map(select(.event=="repository_dispatch"))') )
+    workflow=$( echo $(echo $dispatch_runs | jq '.[0]') )
 
     # TODO(toby): Remove this debug log
     echo "DEBUG: (Workflow) $workflow"
