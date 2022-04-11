@@ -18,6 +18,8 @@ function trigger_workflow {
 
 function find_workflow {
   counter=0
+  action_start=$(date -d "$(date -u +%T)" +"%s")
+  echo "Action timestamp: ${action_start}"
   while [[ true ]]
   do
     counter=$(( $counter + 1 ))
@@ -25,9 +27,9 @@ function find_workflow {
       -H "Accept: application/vnd.github.v3+json" \
       -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
 
-    wtime=$( echo $(echo $workflow | jq '.created_at') | cut -c13-20 )
-    atime=$(date -u +%T)
-    tdif=$(( $(date -d "$atime" +"%s") - $(date -d "$wtime" +"%s") ))
+    wf_time=$( echo $(echo $workflow | jq '.created_at') | cut -c13-20 )
+    echo "Latest workflow timestamp: ${wf_time}"
+    tdif=$(( ${action_start} - $(date -d "$wtime" +"%s") ))
     
     if [[ "$tdif" -gt "10" ]]
     then
