@@ -18,9 +18,6 @@ function trigger_workflow {
 
 function find_workflow {
   counter=0
-  action_start=$(date -u +%T)
-  # TODO(toby): Remove this debug log
-  echo "Action timestamp: $action_start"
   while [[ true ]]
   do
     counter=$(( $counter + 1 ))
@@ -28,19 +25,15 @@ function find_workflow {
       -H "Accept: application/vnd.github.v3+json" \
       -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs' )
 
-    # Github's API is eventually consistent when filtering by event which can
-    # lead to bad results when using the `event` filter on the API query.
-    # Filter here, instead, to work around this.
+    # Github's API is eventually consistent when filtering by event. The API
+    # can return stale results when using the `event` filter on the API query.
+    # Filter runs locally to work around this.
     dispatch_runs=$( echo $(echo $all_runs | jq 'map(select(.event=="repository_dispatch"))') )
     workflow=$( echo $(echo $dispatch_runs | jq '.[0]') )
 
-    # TODO(toby): Remove this debug log
-    echo "DEBUG: (Workflow) $workflow"
-
-    wf_time=$( echo $(echo $workflow | jq '.created_at') | cut -c13-20 )
-    # TODO(toby): Remove this debug log
-    echo "Latest workflow timestamp: ${wf_time}"
-    tdif=$(( $(date -d "$action_start" +"%s") - $(date -d "$wf_time" +"%s") ))
+    wtime=$( echo $(echo $workflow | jq '.created_at') | cut -c13-20 )
+    atime=$(date -u +%T)
+    tdif=$(( $(date -d "$atime" +"%s") - $(date -d "$wtime" +"%s") ))
     
     if [[ "$tdif" -gt "10" ]]
     then
