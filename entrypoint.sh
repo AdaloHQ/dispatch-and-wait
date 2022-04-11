@@ -19,6 +19,7 @@ function trigger_workflow {
 function find_workflow {
   counter=0
   action_start=$(date -u +%T)
+  # TODO(toby): Remove this debug log
   echo "Action timestamp: $action_start"
   while [[ true ]]
   do
@@ -27,7 +28,11 @@ function find_workflow {
       -H "Accept: application/vnd.github.v3+json" \
       -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
 
+    # TODO(toby): Remove this debug log
+    echo "DEBUG: (Workflow) $workflow"
+
     wf_time=$( echo $(echo $workflow | jq '.created_at') | cut -c13-20 )
+    # TODO(toby): Remove this debug log
     echo "Latest workflow timestamp: ${wf_time}"
     tdif=$(( $(date -d "$action_start" +"%s") - $(date -d "$wf_time" +"%s") ))
     
