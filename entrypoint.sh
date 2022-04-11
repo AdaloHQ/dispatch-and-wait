@@ -18,8 +18,8 @@ function trigger_workflow {
 
 function find_workflow {
   counter=0
-  action_start=$(date -d "$(date -u +%T)" +"%s")
-  echo "Action timestamp: ${action_start}"
+  action_start=$(date -u +%T)
+  echo "Action timestamp: $action_start"
   while [[ true ]]
   do
     counter=$(( $counter + 1 ))
@@ -29,7 +29,7 @@ function find_workflow {
 
     wf_time=$( echo $(echo $workflow | jq '.created_at') | cut -c13-20 )
     echo "Latest workflow timestamp: ${wf_time}"
-    tdif=$(( ${action_start} - $(date -d "$wtime" +"%s") ))
+    tdif=$(( $(date -d "$action_start" +"%s") - $(date -d "$wf_time" +"%s") ))
     
     if [[ "$tdif" -gt "10" ]]
     then
